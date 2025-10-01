@@ -270,8 +270,9 @@
       </div>
 
       <div class="total">
-        Charms: <span id="charmCount">0</span>
-      </div>
+  Charms: <span id="charmCount">0</span>
+</div>
+
     </div>
   </div>
 
@@ -321,132 +322,151 @@
   </div>
 
   <script>
-    let selectedMetal = null;
-    let braceletItems = [];
+  const bracelet = document.getElementById('bracelet');
+  const charmCountDisplay = document.getElementById('charmCount');
+  const codeDisplay = document.getElementById('braceletCode');
+  const copyMsg = document.getElementById('copyMsg');
+  let selectedMetal = null;
+  let braceletItems = [];
 
-    function _resetBraceletCodeDisplay() {
-      const codeEl = document.getElementById('braceletCode');
-      const msgEl = document.getElementById('copyMsg');
-      if (codeEl) codeEl.innerText = '...';
-      if (msgEl) msgEl.innerText = '';
-    }
+  function _resetBraceletCodeDisplay() {
+    codeDisplay.textContent = '...';
+    copyMsg.textContent = '';
+  }
 
-    function selectMetal(metal) {
-      if (metal !== 'SILVER' && metal !== 'GOLD') return;
-      selectedMetal = metal;
+  function selectMetal(metal) {
+    if (metal !== 'SILVER' && metal !== 'GOLD') return;
+    selectedMetal = metal;
 
-      document.getElementById('silverBtn').classList.remove('active');
-      document.getElementById('goldBtn').classList.remove('active');
+    document.getElementById('silverBtn').classList.remove('active');
+    document.getElementById('goldBtn').classList.remove('active');
 
-      if (metal === 'SILVER') document.getElementById('silverBtn').classList.add('active');
-      else document.getElementById('goldBtn').classList.add('active');
+    if (metal === 'SILVER') document.getElementById('silverBtn').classList.add('active');
+    else document.getElementById('goldBtn').classList.add('active');
 
-      const placeholder = document.getElementById('metalPlaceholder');
-      if (placeholder) placeholder.style.display = 'none';
+    const placeholder = document.getElementById('metalPlaceholder');
+    if (placeholder) placeholder.style.display = 'none';
 
-      document.querySelectorAll('.charm').forEach(img => {
-        const newSrc = (selectedMetal === 'SILVER' ? img.dataset.silver : img.dataset.gold);
-        if (newSrc) img.src = newSrc;
-      });
-
-      braceletItems.forEach(item => {
-        item.src = (selectedMetal === 'SILVER' ? item.silverSrc : item.goldSrc);
-        item.price = (selectedMetal === 'SILVER' ? item.silverPrice : item.goldPrice);
-        item.name = (selectedMetal === 'SILVER' ? 'S' : 'G') + item.baseName;
-      });
-
-      _resetBraceletCodeDisplay();
-      renderBracelet();
-    }
-
-    function addCharm(charm) {
-      if (!selectedMetal) {
-        alert("Please select a metal first.");
-        return;
-      }
-
-      const baseName = charm.dataset.name;
-      const silverPrice = parseFloat(charm.dataset.price) || 0;
-      const goldPrice = parseFloat(charm.dataset.goldPrice) || silverPrice;
-      const silverSrc = charm.dataset.silver || charm.src;
-      const goldSrc = charm.dataset.gold || charm.src;
-
-      const src = (selectedMetal === 'GOLD' ? goldSrc : silverSrc);
-      const price = (selectedMetal === 'GOLD' ? goldPrice : silverPrice);
-      const codeName = (selectedMetal === 'GOLD' ? 'G' : 'S') + baseName;
-
-      braceletItems.push({
-        baseName: baseName,
-        name: codeName,
-        price: price,
-        src: src,
-        silverSrc: silverSrc,
-        goldSrc: goldSrc,
-        silverPrice: silverPrice,
-        goldPrice: goldPrice
-      });
-
-      renderBracelet();
-    }
-
-    function removeCharm(index) {
-      braceletItems.splice(index, 1);
-      renderBracelet();
-    }
-
-    function renderBracelet() {
-      const braceletDiv = document.getElementById('bracelet');
-      braceletDiv.innerHTML = '';
-
-      if (braceletItems.length === 0) {
-        braceletDiv.innerHTML = '<div id="braceletPlaceholder">Your bracelet is empty</div>';
-      } else {
-        braceletItems.forEach((item, index) => {
-          const itemDiv = document.createElement('div');
-          itemDiv.classList.add('bracelet-item');
-
-          const img = document.createElement('img');
-          img.src = item.src;
-          img.alt = item.name;
-
-          const btn = document.createElement('button');
-          btn.innerText = '×';
-          btn.classList.add('remove-btn');
-          btn.onclick = () => removeCharm(index);
-
-          itemDiv.appendChild(img);
-          itemDiv.appendChild(btn);
-          braceletDiv.appendChild(itemDiv);
-        });
-      }
-
-      const total = braceletItems.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
-      document.getElementById('totalPrice').innerText = total;
-      document.getElementById('charmCount').innerText = braceletItems.length;
-    }
-
-    function clearBracelet() {
-      braceletItems = [];
-      _resetBraceletCodeDisplay();
-      renderBracelet();
-    }
-
-    function generateBraceletCode() {
-      const code = braceletItems.map(item => item.name).join('-');
-      document.getElementById('braceletCode').innerText = code || '...';
-      document.getElementById('copyMsg').innerText = code ? "Copied!" : "";
-      if (code) {
-        try { navigator.clipboard.writeText(code); } catch (e) { }
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('.charm').forEach(charm => {
-        charm.addEventListener('click', () => addCharm(charm));
-      });
-      renderBracelet();
+    document.querySelectorAll('.charm').forEach(img => {
+      const newSrc = (selectedMetal === 'SILVER' ? img.dataset.silver : img.dataset.gold);
+      if (newSrc) img.src = newSrc;
     });
-  </script>
+
+    braceletItems.forEach(item => {
+      item.src = (selectedMetal === 'SILVER' ? item.silverSrc : item.goldSrc);
+      item.price = (selectedMetal === 'SILVER' ? item.silverPrice : item.goldPrice);
+      item.name = (selectedMetal === 'SILVER' ? 'S' : 'G') + item.baseName;
+    });
+
+    _resetBraceletCodeDisplay();
+    renderBracelet();
+    updateCharmCount();
+  }
+
+  function addCharm(charm) {
+    if (!selectedMetal) {
+      alert("Please select a metal first.");
+      return;
+    }
+
+    const baseName = charm.dataset.name;
+    const silverPrice = parseFloat(charm.dataset.price) || 0;
+    const goldPrice = parseFloat(charm.dataset.goldPrice) || silverPrice;
+    const silverSrc = charm.dataset.silver || charm.src;
+    const goldSrc = charm.dataset.gold || charm.src;
+
+    const src = (selectedMetal === 'GOLD' ? goldSrc : silverSrc);
+    const price = (selectedMetal === 'GOLD' ? goldPrice : silverPrice);
+    const codeName = (selectedMetal === 'GOLD' ? 'G' : 'S') + baseName;
+
+    braceletItems.push({
+      baseName: baseName,
+      name: codeName,
+      price: price,
+      src: src,
+      silverSrc: silverSrc,
+      goldSrc: goldSrc,
+      silverPrice: silverPrice,
+      goldPrice: goldPrice
+    });
+
+    renderBracelet();
+    updateCharmCount();
+    _resetBraceletCodeDisplay();
+  }
+
+  function removeCharm(index) {
+    braceletItems.splice(index, 1);
+    renderBracelet();
+    updateCharmCount();
+    _resetBraceletCodeDisplay();
+  }
+
+  function renderBracelet() {
+    bracelet.innerHTML = '';
+
+    if (braceletItems.length === 0) {
+      bracelet.innerHTML = '<div id="braceletPlaceholder">Your bracelet is empty</div>';
+    } else {
+      braceletItems.forEach((item, index) => {
+        const itemDiv = document.createElement('div');
+        itemDiv.classList.add('bracelet-item');
+
+        const img = document.createElement('img');
+        img.src = item.src;
+        img.alt = item.name;
+
+        const btn = document.createElement('button');
+        btn.innerText = '×';
+        btn.classList.add('remove-btn');
+        btn.onclick = () => removeCharm(index);
+
+        itemDiv.appendChild(img);
+        itemDiv.appendChild(btn);
+        bracelet.appendChild(itemDiv);
+      });
+    }
+  }
+
+  function updateCharmCount() {
+    charmCountDisplay.textContent = braceletItems.length;
+  }
+
+  function clearBracelet() {
+    braceletItems = [];
+    _resetBraceletCodeDisplay();
+    renderBracelet();
+    updateCharmCount();
+  }
+
+  function generateBraceletCode() {
+    if (!selectedMetal) {
+      codeDisplay.textContent = "❌ Please choose SILVER or GOLD first.";
+      copyMsg.textContent = "";
+      return;
+    }
+    if (braceletItems.length === 0) {
+      codeDisplay.textContent = "No charms selected.";
+      copyMsg.textContent = "";
+      return;
+    }
+    const code = braceletItems.map(item => item.name).join('-');
+    codeDisplay.textContent = code;
+    navigator.clipboard.writeText(code).then(() => {
+      copyMsg.textContent = "✅ Copied! DM it to us or paste it in your order google form.";
+    }).catch(() => {
+      copyMsg.textContent = "❌ Couldn’t copy. Please copy it manually.";
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.charm').forEach(charm => {
+      charm.addEventListener('click', () => addCharm(charm));
+    });
+    renderBracelet();
+    updateCharmCount();
+  });
+</script>
 </body>
 </html>
 
@@ -1053,16 +1073,12 @@
 
   <script>
     const bracelet = document.getElementById('bracelet');
-    const totalDisplay = document.getElementById('totalPrice');
     const charmCountDisplay = document.getElementById('charmCount');
     const codeDisplay = document.getElementById('braceletCode');
     const copyMsg = document.getElementById('copyMsg');
-    let totalPrice = 0;
     let selectedMetal = null;
-
     function selectMetal(metal) {
       selectedMetal = metal;
-
       document.getElementById("silverBtn").classList.remove("active");
       document.getElementById("goldBtn").classList.remove("active");
       if (metal === "SILVER") {
@@ -1070,7 +1086,6 @@
       } else {
         document.getElementById("goldBtn").classList.add("active");
       }
-
       // Swap charm images
       document.querySelectorAll(".charm").forEach(charm => {
         if (metal === "SILVER") {
@@ -1082,93 +1097,33 @@
       });
     }
 
-    function getCharmPrice(charmName) {
-      if (selectedMetal === "SILVER") {
-        const el = document.querySelector(`.charm[data-name="${charmName}"]`);
-        return parseInt(el.dataset.price);
-      } else if (selectedMetal === "GOLD") {
-        return 35; // adjust if gold pricing differs
-      }
-      return 0;
-    }
-
     function addCharm(el) {
-      if (!selectedMetal) {
+        if (!selectedMetal) {
         codeDisplay.textContent = "❌ Please choose SILVER or GOLD first.";
         copyMsg.textContent = "";
         return;
       }
-
-      const name = el.dataset.name || "CHARM";
-      const price = getCharmPrice(name);
-
-      const container = document.createElement('div');
-      container.className = 'bracelet-item';
-      container.dataset.name = name;
-      container.dataset.price = price;
-
-      const img = document.createElement('img');
-      img.src = el.src;
-      container.appendChild(img);
-
-      const removeBtn = document.createElement('button');
-      removeBtn.className = 'remove-btn';
-      removeBtn.textContent = '×';
-      removeBtn.onclick = function () {
-        removeCharm(container, price);
-      };
-
-      container.appendChild(removeBtn);
-      bracelet.appendChild(container);
-
-      totalPrice += price;
-      updateTotal();
-    }
-
-    function removeCharm(container, price) {
-      bracelet.removeChild(container);
-      totalPrice -= price;
-      updateTotal();
-    }
-
-    function clearBracelet() {
-      bracelet.innerHTML = '';
-      totalPrice = 0;
-      updateTotal();
-      codeDisplay.textContent = "(Your bracelet code will appear here)";
-      copyMsg.textContent = "";
-    }
-
-    function updateTotal() {
-      totalDisplay.textContent = totalPrice;
-      charmCountDisplay.textContent = bracelet.children.length;
-    }
-
-    function generateBraceletCode() {
-      if (!selectedMetal) {
-        codeDisplay.textContent = "❌ Please choose SILVER or GOLD first.";
-        copyMsg.textContent = "";
-        return;
-      }
-
       const charms = bracelet.querySelectorAll('.bracelet-item');
       if (charms.length === 0) {
         codeDisplay.textContent = "No charms selected.";
         copyMsg.textContent = "";
         return;
       }
-
       let prefix = (selectedMetal === "SILVER") ? "s" : "g";
       let code = Array.from(charms).map(c => prefix + c.dataset.name).join(' ');
       codeDisplay.textContent = code;
-
       navigator.clipboard.writeText(code).then(() => {
         copyMsg.textContent = "✅ Copied! DM it to us or paste it in your order google form.";
       }).catch(() => {
         copyMsg.textContent = "❌ Couldn’t copy. Please copy it manually.";
       });
     }
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.charm').forEach(charm => {
+        charm.addEventListener('click', () => addCharm(charm));
+      });
+      updateCharmCount();
+    });
   </script>
 </body>
 </html>
-
